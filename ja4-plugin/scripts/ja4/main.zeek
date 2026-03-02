@@ -5,7 +5,7 @@
 # JA4 by John Althouse
 # Script contributions by Caleb Yu, and Jo Johnson
 
-@load ./config
+@load ../config
 @load base/protocols/ssl
 
 module FINGERPRINT::JA4;

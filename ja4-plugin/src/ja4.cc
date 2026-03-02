@@ -1,5 +1,6 @@
 #include <string>
 #include <cctype>
+#include <iomanip>
 #include <sstream>
 #include <vector>
 #include "zeek/util.h"
@@ -11,10 +12,11 @@
 #include "zeek/Desc.h"
 #include "zeek/analyzer/protocol/ssl/SSL.h"
 
-
 #include "common.h"
 #include "ja4.h"
 #include "ssl-consts.h"
+
+using namespace FINGERPRINT;
 
 std::string b_hash(std::vector<uint32_t> input) {
     return FINGERPRINT::sha256_or_null__12(
@@ -177,15 +179,10 @@ zeek::ValPtr do_ja4(zeek::RecordVal* conn_record, zeek::StringVal* delimiter) {
         service = TableToJSONString(service_table);
     }
     
-    bool proto_exists = conn_data->HasField("proto");
-
+    // conn_data (c$conn) is &optional — may not exist yet
     zeek::IntrusivePtr<zeek::EnumVal> protocol_enum_val;
-    TransportProto transport_proto;
-    if (proto_exists == false){
-        // Handle missing protocol field if necessary
-        transport_proto = TransportProto::TRANSPORT_UNKNOWN;
-    }
-    else {
+    TransportProto transport_proto = TransportProto::TRANSPORT_UNKNOWN;
+    if (conn_data && conn_data->HasField("proto")) {
         zeek::IntrusivePtr<zeek::Val> proto_val = conn_data->GetField("proto");
         protocol_enum_val = zeek::cast_intrusive<zeek::EnumVal>(proto_val);
         transport_proto = static_cast<TransportProto>(protocol_enum_val->AsInt());

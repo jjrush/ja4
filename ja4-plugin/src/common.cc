@@ -1,11 +1,14 @@
 
 #include <cstring>
 #include <cctype>
+#include <iomanip>
 #include <sstream>
 #include "zeek/util.h"
 #include "zeek/net_util.h"
 #include "zeek/ZeekString.h"
-#include <openssl/evp.h> 
+#include "zeek/Val.h"
+#include "zeek/Desc.h"
+#include <openssl/evp.h>
 
 namespace FINGERPRINT {
 
@@ -151,7 +154,7 @@ namespace FINGERPRINT {
             if ( ! str_val )
                 continue;
     
-            result.push_back(str_val->AsString()->ToStdString());
+            result.push_back(str_val->ToStdString());
         }
     
         return result;

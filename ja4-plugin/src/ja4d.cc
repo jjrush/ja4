@@ -38,5 +38,5 @@ std::string get_parameter_list() {
 }
 
 zeek::ValPtr do_ja4d(zeek::RecordVal* conn_record, zeek::RecordVal* msg, zeek::RecordVal* options) {
-
+    return nullptr;
 }

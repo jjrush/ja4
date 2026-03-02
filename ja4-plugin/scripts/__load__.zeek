@@ -3,7 +3,10 @@ module FINGERPRINT;
 export { type Info: record {}; }
 redef record connection += { fp: FINGERPRINT::Info &optional; };
 
+@load ./config
 @load ./utils/common
 @load ./utils/ssl-consts
-@load ./helpers
-@load ./main
+
+@if (JA4_enabled)
+  @load ./ja4
+@endif
