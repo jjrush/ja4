@@ -63,34 +63,22 @@ event zeek_init() &priority=5 {
 
 function do_ja4(c: connection) {
   if (!c?$fp || !c$fp?$client_hello || !c$fp$client_hello?$version || c$fp$ja4$done) {
-    print("skipping JA4 computation");
-    return; 
+    return;
   }
 
-  print(c$fp);
-  
-
+  # Call the C++ BiF — returns a FINGERPRINT::JA4::Info record with ja4, o, r, ro populated
+  c$fp$ja4 = JA4::calculate_ja4(c, FINGERPRINT::delimiter);
   c$fp$ja4$uid = c$uid;
+  c$fp$ja4$done = T;
 
-  # print(JA4::hello());
-
- local ja4_calculated: FINGERPRINT::Info;
- ja4_calculated = JA4::calculate_ja4(c, FINGERPRINT::delimiter);
-
-  print fmt("JA4 calculated: %s", ja4_calculated);
-  # fingerprinting is marked as done and it is logged
-  
   if(c?$ssl) {
     c$ssl$ja4 = c$fp$ja4$ja4;
-    @if(FINGERPRINT::JA4_raw) 
+    @if(FINGERPRINT::JA4_raw)
         c$ssl$ja4_o = c$fp$ja4$o;
         c$ssl$ja4_r = c$fp$ja4$r;
         c$ssl$ja4_ro = c$fp$ja4$ro;
     @endif
   }
-  c$fp$ja4$done = T;
-  # uncomment for detailed separate log
-  # Log::write(FINGERPRINT::JA4::LOG, c$fp$ja4);
 }
 
 # event connection_state_remove(c: connection) {
