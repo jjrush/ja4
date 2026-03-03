@@ -2,19 +2,17 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 project(ZeekPluginJA4)
 
-# When Zeek builds Broker with internal (static) CAF, the exported cmake
-# files still reference CAF::core/io/net and the "broker" shared-lib target
-# as dependencies.  Create stub IMPORTED targets so the import succeeds
-# even when only the static library was installed.
+# Zeek's Broker cmake exports may reference CAF targets when built with
+# external CAF.  Create stub INTERFACE targets as a safety net.
+# Note: Zeek 8.0+ with internal CAF no longer needs these, but the guards
+# make them harmless.  The broker/broker-prometheus-cpp targets are created
+# by BrokerTargets.cmake — do NOT pre-define them here or the partial-
+# definition check in that file will fail.
 foreach(_caf_target CAF::core CAF::io CAF::net)
     if(NOT TARGET ${_caf_target})
         add_library(${_caf_target} INTERFACE IMPORTED)
     endif()
 endforeach()
-if(NOT TARGET broker)
-    add_library(broker SHARED IMPORTED)
-    set_target_properties(broker PROPERTIES IMPORTED_LOCATION "${BRO_CONFIG_LIB_DIR}/libbroker.so")
-endif()
 
 include(ZeekPlugin)
 
