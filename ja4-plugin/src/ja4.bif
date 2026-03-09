@@ -2,6 +2,7 @@ module JA4;
 
 %%{
 #include "ja4.h"
+#include "ja4s.h"
 #include <string>
 #include <cctype>
 #include <sstream>
@@ -23,5 +24,12 @@ function calculate_ja4%(connection_val: any, delimiter: string%): any %{
     zeek::ValPtr signature;
     zeek::RecordVal* connection = connection_val->AsRecordVal();
     signature = do_ja4(connection, delimiter);
+    return signature;
+%}
+
+function calculate_ja4s%(connection_val: any, delimiter: string%): any %{
+    zeek::ValPtr signature;
+    zeek::RecordVal* connection = connection_val->AsRecordVal();
+    signature = do_ja4s(connection, delimiter);
     return signature;
 %}
