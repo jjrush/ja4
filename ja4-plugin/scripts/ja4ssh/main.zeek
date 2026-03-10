@@ -1,9 +1,5 @@
-# Copyright (c) 2024, FoxIO, LLC.
-# All rights reserved.
-# Licensed under FoxIO License 1.1
-# For full license text and more details, see the repo root https://github.com/FoxIO-LLC/ja4
-# JA4+ by John Althouse
-# Zeek script by Jo Johnson
+@load ../config
+@load base/protocols/conn/thresholds
 
 module FINGERPRINT::JA4SSH;
 
@@ -48,60 +44,15 @@ event zeek_init() &priority=5 {
   );
 }
 
-function get_mode(vec: vector of count): count {
-  local freqs: table[count] of count = table();
-
-  for (idx in vec) {
-    local v = vec[idx];
-    if(v in freqs) {
-      ++freqs[v];
-    } else {
-      freqs[v] = 1;
-    }
-  }
-  local max = 0;
-  local mode = 0;
-  for (idx in freqs) {
-    local freq = freqs[idx];
-    # Deterministic tie-breaker: for equal frequency choose the smallest value.
-    if (freq > max || (freq == max && idx < mode)) {
-      max = freq;
-      mode = idx;
-    }
-  }
-
-  return mode;
-}
-
 function do_ja4ssh(c: connection) {
   ++c$fp$ja4ssh$ja4ssh_fingerprint_count;
-  c$fp$ja4ssh$ja4ssh = fmt("c%ds%d_c%ds%d_c%ds%d",
-      get_mode(c$fp$ja4ssh$orig_pack_len),
-      get_mode(c$fp$ja4ssh$resp_pack_len),
-        |c$fp$ja4ssh$orig_pack_len|,
-        |c$fp$ja4ssh$resp_pack_len|,
-        c$fp$ja4ssh$orig_ack,
-        c$fp$ja4ssh$resp_ack);
+  c$fp$ja4ssh$ja4ssh = JA4::calculate_ja4ssh(c);
 
-      Log::write(FINGERPRINT::JA4SSH::LOG, c$fp$ja4ssh);
-      c$fp$ja4ssh$resp_pack_len = vector();
-      c$fp$ja4ssh$orig_pack_len = vector();
-      c$fp$ja4ssh$orig_ack = 0;
-      c$fp$ja4ssh$resp_ack = 0;
-}
-
-event new_connection(c: connection) {
-
-    if(!c?$fp) { c$fp = []; }
-
-     # filter incomplete\out of order connections
-    local rp = get_current_packet_header();
-    if (!rp?$tcp || rp$tcp$flags != TH_SYN) {
-        return;
-    }
-
-    ConnThreshold::set_packets_threshold(c,1,F);  # start watching responses
-    ConnThreshold::set_packets_threshold(c,2,T);  # start watching new orig packets after this one
+  Log::write(FINGERPRINT::JA4SSH::LOG, c$fp$ja4ssh);
+  c$fp$ja4ssh$resp_pack_len = vector();
+  c$fp$ja4ssh$orig_pack_len = vector();
+  c$fp$ja4ssh$orig_ack = 0;
+  c$fp$ja4ssh$resp_ack = 0;
 }
 
 event ConnThreshold::packets_threshold_crossed(c: connection, threshold: count, is_orig: bool) {
@@ -135,21 +86,6 @@ event ConnThreshold::packets_threshold_crossed(c: connection, threshold: count, 
     if(|c$fp$ja4ssh$orig_pack_len| + |c$fp$ja4ssh$resp_pack_len| >= ja4_ssh_packet_count) {
       do_ja4ssh(c);
     }
-}
-
-event ssh_client_version(c: connection, version: string) {
-    c$fp$ja4ssh$is_ssh = T;
-    c$fp$ja4ssh$ts = c$start_time;
-    c$fp$ja4ssh$uid = c$uid;
-    c$fp$ja4ssh$id = c$id;
-}
-
-
-event ssh_server_version(c: connection, version: string) {
-    c$fp$ja4ssh$is_ssh = T;
-    c$fp$ja4ssh$ts = c$start_time;
-    c$fp$ja4ssh$uid = c$uid;
-    c$fp$ja4ssh$id = c$id;
 }
 
 event connection_state_remove(c: connection) {

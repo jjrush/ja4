@@ -18,7 +18,7 @@
 using namespace FINGERPRINT;
 
 // Build the JA4S_a section: {proto}{version}{ext_count}{alpn}
-static std::string make_a_server(TransportProto transport_proto,
+static std::string make_a(TransportProto transport_proto,
                                  const std::string& conn_service,
                                  const std::string& alpn,
                                  int ext_count, 
@@ -85,7 +85,7 @@ zeek::ValPtr do_ja4s(zeek::RecordVal* conn_record, zeek::StringVal* delimiter) {
         service = TableToJSONString(service_val->AsTableVal());
     }
 
-    std::string ja4s_a = make_a_server(transport_proto, service, alpn, static_cast<int>(extension_codes.size()), version);
+    std::string ja4s_a = make_a(transport_proto, service, alpn, static_cast<int>(extension_codes.size()), version);
 
     char cipher_buf[8];
     snprintf(cipher_buf, sizeof(cipher_buf), "%04x", cipher);
