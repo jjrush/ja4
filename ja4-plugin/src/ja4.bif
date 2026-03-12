@@ -5,6 +5,7 @@ module JA4;
 #include "ja4s.h"
 #include "ja4ssh.h"
 #include "ja4t.h"
+#include "ja4h.h"
 #include <string>
 #include <cctype>
 #include <sstream>
@@ -40,6 +41,13 @@ function calculate_ja4ssh%(connection_val: any%): any %{
     zeek::ValPtr signature;
     zeek::RecordVal* connection = connection_val->AsRecordVal();
     signature = do_ja4ssh(connection);
+    return signature;
+%}
+
+function calculate_ja4h%(connection_val: any%): any %{
+    zeek::ValPtr signature;
+    zeek::RecordVal* connection = connection_val->AsRecordVal();
+    signature = do_ja4h(connection);
     return signature;
 %}
 
