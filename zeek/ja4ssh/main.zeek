@@ -67,6 +67,8 @@ function get_mode(vec: vector of count): count {
     if (freq > max || (freq == max && idx < mode)) {
       max = freq;
       mode = idx;
+    } else if (freq == max && idx < mode) {
+      mode = idx;
     }
   }
 
@@ -118,16 +120,20 @@ event ConnThreshold::packets_threshold_crossed(c: connection, threshold: count, 
     if (is_orig) {
         ConnThreshold::set_packets_threshold(c,threshold + 1,T);
 
-        if (rp$tcp$dl == 0) {
-          ++c$fp$ja4ssh$orig_ack;
+        if ((rp$tcp$dl == 0) ) {
+          if (rp$tcp$flags == 0x10) {
+            ++c$fp$ja4ssh$orig_ack;
+          }
         } else {
           c$fp$ja4ssh$orig_pack_len += rp$tcp$dl;
         }
     } else {
         ConnThreshold::set_packets_threshold(c,threshold + 1,F);
 
-        if (rp$tcp$dl == 0) {
-          ++c$fp$ja4ssh$resp_ack;
+        if ((rp$tcp$dl == 0) ) {
+          if (rp$tcp$flags == 0x10) {
+            ++c$fp$ja4ssh$resp_ack;
+          }
         } else {
           c$fp$ja4ssh$resp_pack_len += rp$tcp$dl;
         }
